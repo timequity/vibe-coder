@@ -1,0 +1,88 @@
+{
+  "name": "browser-extension",
+  "description": "Cross-browser extension with WXT framework, TypeScript, and React",
+  "stack": {
+    "framework": "WXT",
+    "manifest": "Manifest V3",
+    "language": "TypeScript",
+    "ui": "React (optional)",
+    "styling": "Tailwind CSS"
+  },
+  "dependencies": {
+    "wxt": "^0.19.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "tailwindcss": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0"
+  },
+  "structure": [
+    "wxt.config.ts",
+    "entrypoints/",
+    "entrypoints/background.ts",
+    "entrypoints/content.ts",
+    "entrypoints/popup/",
+    "entrypoints/popup/main.tsx",
+    "entrypoints/popup/App.tsx",
+    "entrypoints/popup/index.html",
+    "entrypoints/options/",
+    "components/",
+    "assets/",
+    "assets/icon-16.png",
+    "assets/icon-48.png",
+    "assets/icon-128.png",
+    "public/",
+    "tsconfig.json",
+    "tailwind.config.ts"
+  ],
+  "features": {
+    "framework": {
+      "name": "WXT",
+      "benefits": [
+        "File-based entrypoints",
+        "Auto-generated manifest",
+        "HMR for popup/options",
+        "Fast reload for content/background",
+        "Cross-browser from single codebase"
+      ]
+    },
+    "background": {
+      "type": "Service Worker (V3)",
+      "file": "entrypoints/background.ts"
+    },
+    "content_scripts": {
+      "file": "entrypoints/content.ts",
+      "config": "Inline via defineContentScript()"
+    },
+    "popup": {
+      "framework": "React",
+      "styling": "Tailwind CSS"
+    },
+    "storage": {
+      "api": "wxt/storage",
+      "type-safe": true
+    }
+  },
+  "browsers": {
+    "chrome": "Primary target",
+    "firefox": "Supported",
+    "edge": "Supported",
+    "safari": "Supported"
+  },
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox"
+  },
+  "testing": {
+    "unit": "Vitest",
+    "e2e": "Puppeteer or Playwright"
+  },
+  "env": []
+}
