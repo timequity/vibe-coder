@@ -439,15 +439,120 @@ export default defineBackground(() => {
 ## Publishing
 
 ### Chrome Web Store
+
 ```bash
 npm run zip              # Creates .output/my-extension-x.x.x-chrome.zip
 # Upload to Chrome Web Store Developer Dashboard
 ```
 
+**Required justifications for permissions:**
+
+| Permission | Example Justification |
+|------------|----------------------|
+| `storage` | Stores user preferences locally: enabled state, settings. No data transmitted externally. |
+| `activeTab` | Used to apply extension functionality to the current tab when user clicks extension icon. |
+| `tabs` | Required to detect current website URL and determine if extension should activate based on user settings. |
+| `host_permissions: <all_urls>` | Required to inject extension functionality on any website user adds to their list. Only activates on sites explicitly selected by user. |
+
+**Warning:** Broad host permissions (`<all_urls>`) trigger in-depth review (1-2 weeks vs days). If you only need specific sites, list them explicitly.
+
+**Store description template:**
+```
+Short tagline. Clear value proposition.
+
+How it works:
+Brief explanation of the mechanism.
+
+Features:
+• Feature 1 — short description
+• Feature 2 — short description
+• Feature 3 — short description
+
+Privacy-first:
+• No tracking
+• No accounts
+• All data stored locally
+
+Call to action.
+```
+
 ### Firefox Add-ons
+
 ```bash
 npm run zip:firefox      # Creates .output/my-extension-x.x.x-firefox.zip
+# Also creates .output/my-extension-x.x.x-sources.zip (required for review)
 # Upload to Firefox Add-ons Developer Hub
+```
+
+**CRITICAL: Firefox Manifest Requirements (2024+)**
+
+Firefox requires `browser_specific_settings.gecko.data_collection_permissions` for all new extensions:
+
+```typescript
+// wxt.config.ts
+export default defineConfig({
+  manifest: {
+    // ... other config
+    browser_specific_settings: {
+      gecko: {
+        id: 'your-extension@your-domain.com',
+        strict_min_version: '142.0', // Required for data_collection_permissions
+        data_collection_permissions: {
+          // For extensions that DON'T collect data:
+          required: ['none'],
+
+          // For extensions that DO collect data, specify types:
+          // required: ['browsingActivity', 'websiteContent'],
+          // optional: ['locationInfo'],
+        },
+      },
+    },
+  },
+});
+```
+
+**Valid data_collection_permissions values:**
+- `'none'` — extension doesn't collect any data
+- `'locationInfo'` — physical location
+- `'healthInfo'` — health data
+- `'financialAndPaymentInfo'` — payment info
+- `'authenticationInfo'` — login credentials
+- `'personalCommunications'` — messages, emails
+- `'browsingActivity'` — browsing history
+- `'websiteContent'` — page content
+- `'websiteActivity'` — clicks, interactions
+- `'searchTerms'` — search queries
+- `'bookmarksInfo'` — bookmarks
+- `'personallyIdentifyingInfo'` — PII
+
+**Firefox submission notes template:**
+```
+Version notes:
+Initial release of [Extension Name] - [brief description].
+
+Notes for reviewer:
+- No account required to test
+- To test:
+  1. Install extension
+  2. [Step by step testing instructions]
+- No external services or APIs used
+- All data stored locally via browser.storage
+```
+
+### Edge Add-ons
+
+```bash
+# Use the same Chrome zip - Edge is Chromium-based
+npm run zip              # Creates .output/my-extension-x.x.x-chrome.zip
+# Upload to Edge Add-ons Developer Dashboard
+```
+
+### Naming Convention for ZIPs
+
+```bash
+# Rename for clarity
+mv .output/my-extension-1.0.0-chrome.zip ./my-extension-v1.0.0-chrome.zip
+mv .output/my-extension-1.0.0-firefox.zip ./my-extension-v1.0.0-firefox.zip
 ```
 
 ---
