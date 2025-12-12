@@ -93,7 +93,9 @@
         "./skills/graphql-api",
         "./skills/project-types",
         "./skills/project-validation",
-        "./skills/telegram-bot"
+        "./skills/telegram-bot",
+        "./skills/openai-api",
+        "./skills/openai-sdk"
       ],
       "commands": [
         "./commands/brainstorm.md",
