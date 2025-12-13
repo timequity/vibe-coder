@@ -95,7 +95,8 @@
         "./skills/project-validation",
         "./skills/telegram-bot",
         "./skills/openai-api",
-        "./skills/openai-sdk"
+        "./skills/openai-sdk",
+        "./skills/edge-stack"
       ],
       "commands": [
         "./commands/brainstorm.md",
