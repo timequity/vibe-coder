@@ -146,19 +146,79 @@ def check_ready_queue() -> tuple[bool, str]:
 
 
 def check_priorities() -> tuple[bool, str]:
-    """Check all priorities are valid (1-3)."""
+    """Check all priorities are valid (0-4)."""
     issues = get_issues()
 
     invalid = []
     for issue in issues:
-        priority = issue.get("priority", 1)
-        if priority not in [1, 2, 3]:
+        priority = issue.get("priority", 2)
+        if priority not in [0, 1, 2, 3, 4]:
             invalid.append(f"{issue.get('id')}: priority={priority}")
 
     if invalid:
         return False, f"Invalid priorities: {', '.join(invalid)}"
 
-    return True, "All priorities valid (1-3)"
+    return True, "All priorities valid (0-4)"
+
+
+def check_issue_quality(issue: dict) -> tuple[bool, list[str]]:
+    """Check issue has required sections and minimum content."""
+    errors = []
+    desc = issue.get("description", "") or ""
+    issue_id = issue.get("id", "unknown")
+
+    # Skip closed issues
+    if issue.get("status") == "closed":
+        return True, []
+
+    # Minimum length check
+    if len(desc) < 100:
+        errors.append(f"Description too short ({len(desc)} chars, need 100+)")
+
+    # Required sections (flexible matching)
+    desc_lower = desc.lower()
+
+    # Check for summary/overview/goal
+    summary_variants = ["## summary", "## overview", "## goal", "## цель", "summary:", "overview:"]
+    if not any(v in desc_lower for v in summary_variants):
+        # Also accept if description starts with clear statement
+        if not (desc_lower.startswith("implement") or desc_lower.startswith("add") or
+                desc_lower.startswith("fix") or desc_lower.startswith("create")):
+            errors.append("Missing Summary section")
+
+    # Check for files/paths
+    files_variants = ["## files", "files to modify", "## изменения", "## файлы", "`src/", "`lib/", "`app/"]
+    if not any(v in desc_lower for v in files_variants):
+        errors.append("Missing Files to Modify section")
+
+    # Check for implementation steps
+    steps_variants = ["## implementation", "## steps", "## план", "## шаги", "1. ", "1) "]
+    if not any(v in desc_lower for v in steps_variants):
+        errors.append("Missing Implementation Steps section")
+
+    # Check for acceptance criteria
+    criteria_variants = ["## acceptance", "## criteria", "## готово", "- [ ]", "- [x]", "success criteria"]
+    if not any(v in desc_lower for v in criteria_variants):
+        errors.append("Missing Acceptance Criteria section")
+
+    return len(errors) == 0, errors
+
+
+def check_all_issues_quality() -> tuple[bool, str, list[tuple[str, list[str]]]]:
+    """Check quality of all open issues."""
+    issues = get_issues()
+    open_issues = [i for i in issues if i.get("status") != "closed"]
+
+    failures = []
+    for issue in open_issues:
+        passed, errors = check_issue_quality(issue)
+        if not passed:
+            failures.append((issue.get("id", "unknown"), errors))
+
+    if failures:
+        return False, f"{len(failures)}/{len(open_issues)} issues have quality problems", failures
+
+    return True, f"All {len(open_issues)} open issues pass quality check", []
 
 
 def main():
@@ -170,6 +230,8 @@ def main():
                         help="Check dependencies are valid")
     parser.add_argument("--check-ready", action="store_true",
                         help="Check ready queue not empty")
+    parser.add_argument("--check-quality", action="store_true",
+                        help="Check issue descriptions have required sections")
     parser.add_argument("--all", action="store_true",
                         help="Run all checks")
     args = parser.parse_args()
@@ -178,6 +240,7 @@ def main():
         args.check_created = True
         args.check_deps = True
         args.check_ready = True
+        args.check_quality = True
 
     print("## Beads Validation\n")
 
@@ -204,6 +267,19 @@ def main():
         passed, msg = check_ready_queue()
         results.append(("Ready Queue", passed, msg))
         print(f"[{'PASS' if passed else 'FAIL'}] {msg}")
+
+    # Quality check
+    if args.check_quality:
+        passed, msg, failures = check_all_issues_quality()
+        results.append(("Issue Quality", passed, msg))
+        print(f"[{'PASS' if passed else 'WARN'}] {msg}")
+
+        if failures:
+            print("\n  Quality issues:")
+            for issue_id, errors in failures:
+                print(f"    {issue_id}:")
+                for error in errors:
+                    print(f"      - {error}")
 
     # Always check priorities
     passed, msg = check_priorities()

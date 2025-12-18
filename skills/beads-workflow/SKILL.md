@@ -135,6 +135,59 @@ For subtasks, link to parent:
 bd dep add <child-id> <parent-id> --type parent-child
 ```
 
+## Writing Self-Contained Issues (CRITICAL)
+
+**Every issue must be readable without external context.** A future session (or different developer) should understand the task completely from the description alone.
+
+### Required Sections
+
+Use the template from [references/issue-template.md](references/issue-template.md):
+
+```markdown
+## Summary
+[What and why — 1-2 sentences]
+
+## Files to Modify
+- `path/to/file.ts:123` — what changes
+
+## Implementation Steps
+1. Specific step with details
+2. Next step
+
+## Acceptance Criteria
+- [ ] Criterion 1
+- [ ] Tests pass
+```
+
+### Quick Quality Check
+
+Before creating, ask yourself:
+- Can someone understand this WITHOUT reading chat history?
+- Are specific files and line numbers mentioned?
+- Are acceptance criteria measurable?
+
+### Using Rich Fields
+
+```bash
+# Edit main description
+bd edit <id> --description
+
+# Add technical design notes
+bd edit <id> --design
+
+# Add gotchas and warnings
+bd edit <id> --notes
+```
+
+### Validation
+
+Run before committing:
+```bash
+python3 skills/beads-validation/scripts/validate_beads.py --check-quality
+```
+
+See [references/issue-template.md](references/issue-template.md) for full template and examples.
+
 ## Refresh Tasks
 
 When user says "обнови задачи", "refresh", "sync":
@@ -173,3 +226,4 @@ If task is still in_progress when session ends:
 
 - For detailed session lifecycle: See [references/session-lifecycle.md](references/session-lifecycle.md)
 - For all bd commands: See [references/task-operations.md](references/task-operations.md)
+- For issue template and examples: See [references/issue-template.md](references/issue-template.md)
